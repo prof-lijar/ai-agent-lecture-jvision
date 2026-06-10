@@ -159,7 +159,6 @@ def main() -> int:
             "--standalone",
             "--embed-resources",
             "--css", str(css_path),
-            "--metadata", "lang=ko",
         ]
         if args.toc:
             pandoc_cmd.extend(["--toc", "--toc-depth=2"])
