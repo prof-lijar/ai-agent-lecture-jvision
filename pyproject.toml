@@ -1,0 +1,30 @@
+[project]
+name = "ai-agent-lecture-jvision"
+version = "0.1.0"
+description = "2-day AI Agent workshop for Korean CS students — LangChain + LangGraph + multi-agent portfolio project"
+requires-python = ">=3.11"
+dependencies = [
+  "langchain>=0.3",
+  "langchain-openai>=0.2",
+  "langchain-google-genai>=2.0",
+  "langchain-community>=0.3",
+  "langchain-chroma>=0.1",
+  "langgraph>=0.2",
+  "langgraph-checkpoint>=2.0",
+  "chromadb>=0.5",
+  "streamlit>=1.39",
+  "python-dotenv>=1.0",
+  "tiktoken>=0.8",
+  "pypdf>=5.0",
+  "rich>=13.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.7",
+  "pytest>=8.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

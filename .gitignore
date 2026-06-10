@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+*.docx
+!**/references/*.docx
+chroma_db/
+.pytest_cache/
+build/
+dist/
+*.egg-info/
