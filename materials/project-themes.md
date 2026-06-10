@@ -1,114 +1,123 @@
-# 학생 프로젝트 주제 5선
+# 프로젝트 주제 10선 — 24/7 작동하는 에이전트
 
-각 주제는 **Day 2 오전 라이브 코딩으로 본 Supervisor 패턴**을 베이스로, 학생이 워커 2~3개와 도구 2~3개를 더해 4시간 안에 완성할 수 있도록 설계되었다. 모두 **첫 취업 면접에서 임팩트 있는 데모**가 가능한 주제이다.
-
----
-
-## 1. resume-coach
-
-**한 줄 설명**: 본인 이력서와 채용 공고를 비교해 매칭률과 개선점을 알려주는 에이전트.
-
-**Supervisor가 라우팅하는 워커**
-- `Resume Reviewer` — 이력서 구조·문장·키워드 분석
-- `JD Matcher` — 채용 공고에서 요구 역량 추출 후 매칭률 계산
-- `Coach` — 개선 제안 (구체적 문장 수정 제안)
-
-**도구**
-- `parse_pdf(resume.pdf)` — 이력서 텍스트 추출
-- `fetch_jd(url)` — 채용 공고 본문 가져오기
-- `keyword_score(resume_text, jd_text)` — 키워드 매칭 점수
-
-**왜 좋은 면접 데모**: 채용담당자가 본인 회사 공고 URL을 넣고 즉시 매칭 결과를 보면 임팩트가 큼.
-
-**위험 요소**: 이력서에 개인정보 → README에 데모 시 더미 이력서 사용 명시.
+모든 주제의 공통 조건:
+- 워커 2~3개 (Supervisor + workers)
+- 자동 실행 트리거 명확 (cron / webhook / scheduler)
+- **사람의 실제 업무**를 부분 자동화
+- 1분 시연 시 "매일 무엇을 하는가"가 한눈에 보임
 
 ---
 
-## 2. interview-prep
+## 5.1 업무 자동화 에이전트 (Work-Related)
 
-**한 줄 설명**: 직무를 입력하면 예상 질문을 만들고, 답변에 피드백을 주는 모의 면접 에이전트.
-
-**Supervisor가 라우팅하는 워커**
-- `Question Maker` — 직무·연차에 맞는 질문 5개 생성 (기술 + 인성 균형)
-- `Mock Interviewer` — 사용자 답변을 받고 후속 질문 (follow-up)
-- `Feedback` — STAR 프레임워크로 답변 강점·약점 평가
-
-**도구**
-- `search_company_info(name)` — 회사 정보 (Wikipedia, 뉴스)
-- `save_session(transcript)` — 대화 기록 저장
-
-**왜 좋은 면접 데모**: 본인이 지원한 회사로 데모하면 면접관이 자기 회사로 모의 면접 보는 것을 보게 됨.
-
-**위험 요소**: 잘못된 회사 정보 → 출처 명시 + "AI 답변임을 알림" 가드레일.
+### 1. job-hunt-watcher
+**한 줄**: 매일 새 채용 공고를 본인 조건에 맞춰 매칭·요약·알림.
+**워커**: `Scraper` (JobKorea/Wanted 스캔) · `Matcher` (조건 매칭) · `Notifier` (Slack/Email)
+**도구**: `fetch_listings(query)` · `match_resume(jd, profile)` · `send_slack(text)`
+**트리거**: 매일 09:00 GitHub Actions cron
+**왜 좋은 면접 데모**: 채용 담당자에게 "오늘 아침에도 자동으로 받았어요"가 가장 강력한 어필.
+**리스크**: 사이트 robots.txt 준수 / 합리적 요청 간격.
 
 ---
 
-## 3. study-helper
-
-**한 줄 설명**: 강의 PDF·노트를 넣으면 퀴즈를 만들고, 사용자가 풀면 채점·해설하는 학습 도우미.
-
-**Supervisor가 라우팅하는 워커**
-- `Quiz Maker` — Day 1 RAG 함수 활용. 문서에서 객관식 5문제 생성
-- `Tutor` — 사용자가 모르는 개념 질문에 답변 (RAG 기반)
-- `Grader` — 사용자 답을 채점 + 해설
-
-**도구**
-- `load_document(pdf|url)` — Day 1 RAG 파이프라인 재활용
-- `save_progress(user_id, score)` — 학습 진도 저장
-
-**왜 좋은 면접 데모**: 본인 전공 책으로 데모. "학습 진도까지 기억" 강조 시 메모리 기능 어필.
-
-**위험 요소**: 환각으로 잘못된 정답 → 채점 시 RAG 인용 표시 강제.
+### 2. pr-review-bot
+**한 줄**: 본인 GitHub 저장소에 PR이 열리면 자동으로 리뷰 코멘트 작성.
+**워커**: `Diff Reader` · `Style Checker` · `Logic Reviewer`
+**도구**: `gh_pr_diff(num)` · `gh_pr_comment(num, text)` · `run_linter(diff)`
+**트리거**: GitHub Actions `on: pull_request`
+**왜 좋은 면접 데모**: 본인 저장소에서 라이브로 PR 열어 30초 만에 코멘트 받는 시연.
+**리스크**: 비용 — PR마다 LLM 호출. 변경 라인 수에 토큰 캡.
 
 ---
 
-## 4. mini-dev-team (강사 `dev-team`의 축소판)
-
-**한 줄 설명**: 작은 코딩 task를 입력하면 계획·구현·리뷰까지 3개 에이전트가 협업.
-
-**Supervisor가 라우팅하는 워커**
-- `Planner` — task를 step 리스트로 분해
-- `Coder` — step별 Python 함수 작성
-- `Reviewer` — 작성된 코드를 PEP 8·logic·테스트 관점에서 리뷰
-
-**도구**
-- `run_python(code)` — 샌드박스에서 코드 실행 (단위 테스트)
-- `save_to_file(path, content)` — 결과 저장
-
-**왜 좋은 면접 데모**: 강사 본인의 `orchast_agent/dev-team` 풀버전과 같은 패턴 → "엔터프라이즈 멀티 에이전트와 같은 아키텍처"로 어필.
-
-**위험 요소**: 코드 실행 보안 → 샌드박스(서브프로세스 + 타임아웃) 필수.
+### 3. daily-digest-agent
+**한 줄**: 본인 관심 RSS/뉴스/X를 매일 아침 모아 요약 다이제스트 1통.
+**워커**: `Collector` (소스 폴링) · `Summarizer` (요약) · `Curator` (관심도 점수 정렬)
+**도구**: `fetch_rss(url)` · `fetch_url(url)` · `send_email(body)` 또는 `commit_to_repo()`
+**트리거**: 매일 07:00 cron
+**왜 좋은 면접 데모**: "본인 다이제스트 보여주세요" → 폰에서 오늘 메일 보여주기.
+**리스크**: 중복 제거 · 출처 명시.
 
 ---
 
-## 5. content-team
-
-**한 줄 설명**: 주제를 입력하면 리서치·작성·편집을 거쳐 블로그 글 1편을 완성.
-
-**Supervisor가 라우팅하는 워커**
-- `Researcher` — 웹 검색 후 핵심 출처 3~5개 수집
-- `Writer` — 출처를 인용하며 1500~2500자 글 작성
-- `Editor` — 문체 통일, 헤더 구조 정리, 최종 마크다운 산출
-
-**도구**
-- `web_search(query)` — DuckDuckGo·Tavily·Serper 등
-- `fetch_url(url)` — 본문 추출 (`trafilatura` 등)
-- `save_markdown(title, body)` — md 파일로 저장
-
-**왜 좋은 면접 데모**: 면접관이 보는 앞에서 "본인 블로그 글을 AI가 자동 생성"하는 자율성 어필.
-
-**위험 요소**: 출처 누락 → Editor 워커가 출처 없는 문장 거부 가드레일.
+### 4. standup-compiler
+**한 줄**: 팀 Slack/Notion 채널의 어제 활동을 모아 매일 아침 standup 요약 생성.
+**워커**: `Activity Collector` · `Per-Person Summarizer` · `Standup Formatter`
+**도구**: `fetch_slack_messages(channel, since)` · `fetch_notion_pages(since)` · `post_to_channel(text)`
+**트리거**: 매일 09:30 cron
+**왜 좋은 면접 데모**: 본인 사이드 프로젝트 팀에서 실제 사용 중인 모습.
+**리스크**: 개인 정보 → 본인 데이터 또는 더미 채널로 데모.
 
 ---
 
-## 주제 선정 가이드 (강사용)
+### 5. customer-support-triage
+**한 줄**: Discord/Slack 문의 메시지를 자동 분류 + 답변 초안 작성 + 필요시 에스컬레이션.
+**워커**: `Classifier` (긴급/일반/스팸) · `Drafter` (답변 초안) · `Escalator` (긴급은 멘션)
+**도구**: `read_message(payload)` · `post_reply(channel, text)` · `mention_user(uid)`
+**트리거**: Discord/Slack webhook
+**왜 좋은 면접 데모**: 본인 Discord 서버에서 라이브로 메시지 → 30초 내 답변.
+**리스크**: 잘못된 자동 답변 → 항상 "초안" 라벨 또는 사람 승인 단계(HITL).
 
-학생 1:1 컨펌 시 체크:
+---
 
-- [ ] 워커 수 ≤ 3 (시간 안에 안 끝남)
-- [ ] 도구 수 ≤ 3 (도구 디버깅에 시간 다 씀)
-- [ ] 데이터/API 키 외부 의존성 ≤ 1 (배포에서 막힘)
-- [ ] 데모가 "1분 안에 결과가 눈에 보이는가" (시연 발표 30~60초 룰)
-- [ ] 학생이 도메인에 관심이 있는가 (4시간 집중 가능 여부)
+### 6. meeting-notes-agent
+**한 줄**: 회의록(텍스트 또는 음성 전사) 업로드 → 액션 아이템 추출 → GitHub Issue 자동 등록.
+**워커**: `Extractor` (액션 아이템) · `Assigner` (담당자 추정) · `Issue Creator` (GitHub Issue 생성)
+**도구**: `parse_transcript(file)` · `gh_issue_create(title, body, assignee)` · `extract_dates(text)`
+**트리거**: 파일 업로드 또는 cron (이메일 첨부 폴링)
+**왜 좋은 면접 데모**: 강의 중 회의록 1개 라이브 입력 → 5초 내 Issue 5개 생성.
+**리스크**: 잘못된 담당자 지정 → 항상 "review needed" 라벨 부착.
 
-> 학생이 위 5개 외 주제를 가져오면, 위 체크리스트 통과 시 OK. 단, **워커 수 3 이하 / 4시간 완성 가능**을 협상 불가 선으로 둘 것.
+---
+
+## 5.2 취업 준비 에이전트
+
+### 7. interview-prep
+**한 줄**: 직무 입력 → 질문 5개 생성 → 답변 받고 STAR 기준 피드백.
+**워커**: `Question Maker` · `Mock Interviewer` (후속 질문) · `Feedback` (STAR 평가)
+**도구**: `search_company(name)` · `save_session(transcript)`
+**트리거**: 사용자 호출 (cron 옵션: 매일 신규 질문 1개 푸시)
+**리스크**: 잘못된 회사 정보 → 출처 명시.
+
+---
+
+### 8. resume-tailor
+**한 줄**: 채용 공고 URL + 이력서 → 공고에 맞춰진 이력서 + 자기소개서 초안.
+**워커**: `JD Parser` · `Resume Editor` · `Cover Letter Writer`
+**도구**: `fetch_url(jd)` · `parse_pdf(resume)` · `save_markdown(content)`
+**트리거**: 사용자 호출 (즐겨찾는 회사 cron으로 매주 자동 업데이트 가능)
+**리스크**: 사실 왜곡 금지 — 이력서의 사실은 추가/변경하지 않고 강조만 재배치.
+
+---
+
+## 5.3 개발자 포트폴리오 에이전트
+
+### 9. mini-dev-team
+**한 줄**: 작은 코딩 작업을 받아 Planner + Coder + Reviewer가 협업해 자율 완료.
+**워커**: `Planner` (step 분해) · `Coder` (구현) · `Reviewer` (코드 리뷰)
+**도구**: `run_python(code)` (샌드박스) · `save_to_file(path, content)` · `read_file(path)`
+**트리거**: 사용자 호출 또는 GitHub Issue label trigger
+**왜 좋은 면접 데모**: 강사 `orchast_agent/dev-team` 풀버전과 같은 패턴 → "엔터프라이즈 멀티 에이전트와 같은 아키텍처" 어필.
+**리스크**: 코드 실행 보안 → 서브프로세스 + 타임아웃 + 디스크 격리 필수.
+
+---
+
+### 10. personal-research-agent
+**한 줄**: 주제 입력 → 매주 자동으로 리서치 보고서 생성 후 Notion/GitHub 저장.
+**워커**: `Researcher` (웹 검색) · `Writer` (1500자 보고서) · `Editor` (출처 인용 검증)
+**도구**: `web_search(q)` · `fetch_url(url)` · `commit_to_repo(filename, content)`
+**트리거**: 매주 월요일 08:00 cron
+**왜 좋은 면접 데모**: 본인 GitHub의 `research/` 폴더에 매주 누적되는 보고서 보여주기 = "꾸준함의 증거".
+
+---
+
+## 강사 1:1 컨펌 체크리스트
+
+학생이 위 10개 외 주제를 제안할 때 통과 기준:
+- [ ] 워커 ≤ 3
+- [ ] 도구 ≤ 4
+- [ ] 외부 의존성 ≤ 2 (API, 사이트, DB 등)
+- [ ] **24/7 자동 실행 시나리오가 1줄로 설명 가능** ("매일 09시 cron으로 X 후 Y")
+- [ ] 1분 데모로 "매일 무엇을 하는가"가 보임
+
+> 협상 불가: **24/7 트리거 명시** + **워커 3개 이내**. 시간 안에 못 끝남.
