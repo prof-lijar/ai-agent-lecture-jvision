@@ -3,8 +3,6 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-*.docx
-*.pdf
 !**/references/*.docx
 chroma_db/
 .pytest_cache/
